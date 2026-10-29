@@ -44,8 +44,8 @@ Kiểm tra bằng `git --version`.
 Tên và email sẽ gắn vào mọi commit. Email nên trùng với email tài khoản GitHub để commit được liên kết đúng.
 
 ```bash
- git config --global user.name "Ten Cua Ban"
-git config --global user.email "ban@example.com"
+ git config --global user.name "cduong11"
+git config --global user.email "cduong11@example.com"
 git config --global init.defaultBranch main
 git config --global core.editor "nano"   # hoặc "code --wait", "vim"
 git config --list                         # xem lại cấu hình
@@ -181,7 +181,7 @@ git add README.md .gitignore
 git commit -m "Initialize analysis project structure"
 
 # Tạo kho trống trên GitHub (không tích README), rồi kết nối và push lần đầu
-git remote add origin git@github.com:lab/rnaseq-te-analysis.git
+git remote add origin https://github.com/cduong11/rnaseq-te-analysis.git
 git push -u origin main
 
 # Trên cụm HPC: lấy kho về sau khi đã push lên GitHub
