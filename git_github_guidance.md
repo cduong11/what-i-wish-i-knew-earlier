@@ -6,7 +6,7 @@ Oct 29, 2026 · @Chau Duong
 
 Trong tin sinh học, Git quản lý phần "công thức" của phân tích (mã, cấu hình, môi trường, tài liệu), còn dữ liệu thô và kết quả lớn nằm ở nơi khác. Nhờ vậy, mỗi hình hay bảng trong bài báo có thể truy ngược về đúng phiên bản mã đã tạo ra nó.
 
-Git là công cụ quản lý phiên bản chạy trên máy cá nhân hoặc cụm HPC; GitHub là dịch vụ web lưu bản sao của kho Git để chia sẻ, review và phát hành.
+Git là công cụ quản lý phiên bản chạy trên máy cá nhân hoặc cụm HPC; GitHub là dịch vụ web lưu bản sao của repo Git (repository) để chia sẻ, review và phát hành.
 
 | Đưa vào Git | Để ngoài Git |
 | --- | --- |
@@ -55,7 +55,7 @@ git config --list                         # xem lại cấu hình
 
 GitHub không còn chấp nhận mật khẩu tài khoản khi push qua HTTPS, nên SSH key (hoặc personal access token) gần như là bắt buộc.
 
-1. Tạo key: `ssh-keygen -t ed25519 -C "ban@example.com"` và nhấn Enter để dùng đường dẫn mặc định.
+1. Tạo key: `ssh-keygen -t ed25519 -C "cduong@example.com"` và nhấn Enter để dùng đường dẫn mặc định.
 2. Sao chép khóa công khai: `cat ~/.ssh/id_ed25519.pub`.
 3. Trên GitHub, vào Settings, chọn SSH and GPG keys, bấm New SSH key và dán nội dung vào.
 4. Kiểm tra: `ssh -T git@github.com`. Nếu thấy lời chào kèm tên tài khoản là đã thành công.
@@ -67,7 +67,7 @@ Khi clone, hãy dùng địa chỉ dạng `git@github.com:user/repo.git` thay v�
 Cụm tính toán là một máy riêng, nên cần cấu hình Git và tạo SSH key riêng ở đó (lặp lại các bước trên sau khi đăng nhập vào cụm). Một số điểm thường gặp:
 
 - Phiên bản Git hệ thống đôi khi khá cũ; thử `module avail git` rồi `module load git` để dùng bản mới hơn.
-- Đặt kho mã trong thư mục home hoặc project (có sao lưu), còn dữ liệu và thư mục `work/` của pipeline đặt ở scratch hoặc vùng lưu trữ dự án.
+- Đặt repo mã trong thư mục home hoặc project (có sao lưu), còn dữ liệu và thư mục `work/` của pipeline đặt ở scratch hoặc vùng lưu trữ dự án.
 - Một số nút tính toán không có internet; nên `git pull` trên nút đăng nhập trước khi gửi job.
 - Nếu cụm chặn cổng 22, có thể dùng SSH qua cổng 443 của GitHub (`ssh.github.com`) theo hướng dẫn trong GitHub Docs.
 
@@ -81,12 +81,12 @@ Sửa tệp xảy ra ở vùng làm việc; `git add` chọn những thay đổi
 
 | Thuật ngữ | Ý nghĩa |
 | --- | --- |
-| Repository (repo, kho) | Thư mục dự án cùng toàn bộ lịch sử, lưu trong thư mục ẩn `.git` |
+| repository (repo) | Thư mục dự án cùng toàn bộ lịch sử, lưu trong thư mục ẩn `.git` |
 | Commit | Một bản chụp các tệp tại một thời điểm, có mã định danh (hash), tác giả, thời gian và message |
 | Branch (nhánh) | Một dòng phát triển riêng; thực chất là con trỏ trỏ tới một commit |
 | `main` | Nhánh mặc định, thường là phiên bản ổn định |
 | HEAD | Con trỏ cho biết bạn đang đứng ở commit hoặc nhánh nào |
-| Remote | Bản sao của kho ở nơi khác, thường trên GitHub |
+| Remote | Bản sao của repo ở nơi khác, thường trên GitHub |
 | `origin` | Tên mặc định của remote khi bạn clone |
 | Merge | Gộp lịch sử của hai nhánh |
 | Pull request (PR) | Đề xuất gộp nhánh trên GitHub, kèm thảo luận và review |
@@ -168,24 +168,26 @@ Dòng `!` ở cuối giữ lại các tệp test nhỏ dù chúng trùng mẫu `
 
 ## Các lệnh hằng ngày qua một ví dụ RNA-seq
 
-Phần lớn công việc là một vòng lặp: sửa script hoặc cấu hình, `git add`, `git commit`, `git push`, rồi `git pull` ở máy còn lại (thường là cụm HPC) trước khi chạy.
+Phần lớn công việc là một vòng lặp: sửa script hoặc cấu hình, `git add`, `git commit`, `git push`, rồi `git pull`.
 
 **Bắt đầu dự án**
 
 ```bash
-# Trên laptop: tạo kho mới cho phân tích
+# Trên laptop: tạo repo mới cho phân tích
 mkdir rnaseq-te-analysis && cd rnaseq-te-analysis
 git init
 # tạo README.md, .gitignore, cấu trúc thư mục như phần trên
 git add README.md .gitignore
 git commit -m "Initialize analysis project structure"
 
-# Tạo kho trống trên GitHub (không tích README), rồi kết nối và push lần đầu
-git remote add origin https://github.com/cduong11/rnaseq-te-analysis.git
+# Tạo repo trống trên GitHub (không tích README), rồi kết nối và push lần đầu
+# hoặc git@github.com:cduong11/rnaseq-te-analysis.git
+git remote add origin https://github.com/cduong11/rnaseq-te-analysis.git.  
+
 git push -u origin main
 
-# Trên cụm HPC: lấy kho về sau khi đã push lên GitHub
-git clone git@github.com:lab/rnaseq-te-analysis.git
+# Trên cụm HPC: lấy repo về sau khi đã push lên GitHub
+git clone git@github.com:cduong11/rnaseq-te-analysis.git
 ```
 
 **Vòng làm việc thông thường**
@@ -199,9 +201,9 @@ git commit -m "Add viral load covariate to DESeq2 design"
 git push
 ```
 
-Nên `git add` từng tệp cụ thể thay vì `git add .` cho đến khi `.gitignore` đã chắc chắn; `git add .` dễ vô tình đưa một tệp BAM hay bảng metadata vào kho.
+Nên `git add` từng tệp cụ thể thay vì `git add .` cho đến khi `.gitignore` đã chắc chắn; `git add .` dễ vô tình push một tệp BAM hay bảng metadata.
 
-**Đồng bộ laptop và cụm HPC**
+**Đồng bộ laptop và cụm HPC (login node)**
 
 ```bash
 # Trên cụm, trước khi gửi job
@@ -286,10 +288,10 @@ Tiền tố cho biết mục đích giúp danh sách nhánh dễ đọc: `exp/` 
 
 Với một nhóm tin sinh học, GitHub thường đảm nhận ba việc: nơi review thay đổi trong pipeline qua pull request, nơi chạy kiểm thử tự động trên dữ liệu test nhỏ, và nơi phát hành phiên bản mã đi kèm bài báo.
 
-**Tổ chức kho của nhóm**
+**Tổ chức repo của nhóm**
 
-- Tạo một GitHub Organization cho phòng thí nghiệm để kho không phụ thuộc vào tài khoản cá nhân khi thành viên rời nhóm.
-- Kho phân tích trên dữ liệu chưa công bố nên để Private; chuyển sang Public khi nộp bài hoặc khi bài được chấp nhận.
+- Tạo một GitHub Organization cho phòng thí nghiệm để repo không phụ thuộc vào tài khoản cá nhân khi thành viên rời nhóm.
+- repo phân tích trên dữ liệu chưa công bố nên để Private; chuyển sang Public khi nộp bài hoặc khi bài được chấp nhận.
 - Sinh viên có thể đăng ký GitHub Education để dùng các tính năng trả phí miễn phí.
 
 **Pull request cho thay đổi trong pipeline**
@@ -302,7 +304,7 @@ Với một nhóm tin sinh học, GitHub thường đảm nhận ba việc: nơi
 
 **Issues để theo dõi vấn đề phân tích**
 
-Issue phù hợp để ghi các việc như "mẫu S12 có tỉ lệ map thấp, cần kiểm tra" hay "thử thêm hiệu chỉnh batch". Viết `Fixes #12` trong commit message hoặc mô tả PR sẽ tự đóng issue số 12 khi gộp. Tránh ghi mã bệnh nhân hay thông tin lâm sàng trong issue, kể cả ở kho Private.
+Issue phù hợp để ghi các việc như "mẫu S12 có tỉ lệ map thấp, cần kiểm tra" hay "thử thêm hiệu chỉnh batch". Viết `Fixes #12` trong commit message hoặc mô tả PR sẽ tự đóng issue số 12 khi gộp. Tránh ghi mã bệnh nhân hay thông tin lâm sàng trong issue, kể cả ở repo Private.
 
 **Dùng và đóng góp cho pipeline cộng đồng**
 
@@ -313,7 +315,7 @@ nextflow run nf-core/rnaseq -r 3.14.0 -profile singularity \
     --input samplesheet.csv --genome GRCh38 --outdir results
 ```
 
-Khi cần sửa một pipeline không thuộc quyền của mình, fork kho về tài khoản, làm việc trên bản fork, rồi mở PR ngược lại kho gốc:
+Khi cần sửa một pipeline không thuộc quyền của mình, fork repo về tài khoản, làm việc trên bản fork, rồi mở PR ngược lại repo gốc:
 
 ```bash
 git clone git@github.com:ban/rnaseq.git && cd rnaseq
@@ -346,8 +348,8 @@ Dữ liệu test cần đủ nhỏ để chạy trong vài phút trên máy ảo
 | --- | --- |
 | Đánh dấu phiên bản | `git tag -a v1.0.0 -m "Manuscript submission"` rồi `git push --tags` |
 | Tạo release | Trên GitHub, mục Releases, chọn tag và viết ghi chú thay đổi |
-| Cấp DOI | Liên kết kho với [Zenodo](https://zenodo.org); mỗi release được lưu trữ và cấp DOI để trích dẫn |
-| Hướng dẫn trích dẫn | Thêm tệp `CITATION.cff` ở gốc kho; GitHub hiển thị nút Cite this repository |
+| Cấp DOI | Liên kết repo với [Zenodo](https://zenodo.org); mỗi release được lưu trữ và cấp DOI để trích dẫn |
+| Hướng dẫn trích dẫn | Thêm tệp `CITATION.cff` ở gốc kho; GitHub hiển thị nút Cite this repo sitory |
 | Giấy phép | Thêm tệp `LICENSE` (ví dụ MIT cho mã) để người khác được phép tái sử dụng |
 
 ## Hoàn tác và sửa lỗi
@@ -371,11 +373,11 @@ Cách hoàn tác phụ thuộc vào việc commit đã được push hay chưa; 
 Xóa tệp ở commit mới không đủ: tệp vẫn nằm trong lịch sử và trong mọi bản clone. Nếu chưa push, cách đơn giản nhất là `git reset --soft` về trước commit đó, bỏ tệp ra rồi commit lại. Nếu đã push:
 
 1. Với dữ liệu nhạy cảm (mã bệnh nhân, metadata lâm sàng, token), báo ngay cho người phụ trách dữ liệu và thu hồi token; việc này quan trọng hơn việc dọn lịch sử.
-2. Dùng [git-filter-repo](https://github.com/newren/git-filter-repo) để gỡ tệp khỏi toàn bộ lịch sử, ví dụ `git filter-repo --path data/clinical_metadata.csv --invert-paths`.
+2. Dùng [git-filter-repo ](https://github.com/newren/git-filter-repo ) để gỡ tệp khỏi toàn bộ lịch sử, ví dụ `git filter-repo  --path data/clinical_metadata.csv --invert-paths`.
 3. `git push --force` lên mọi nhánh bị ảnh hưởng, rồi yêu cầu mọi người xóa bản clone cũ và clone lại.
-4. Với kho trên GitHub, có thể cần liên hệ GitHub Support để xóa bản lưu đệm của các commit cũ.
+4. Với repo trên GitHub, có thể cần liên hệ GitHub Support để xóa bản lưu đệm của các commit cũ.
 
-Các lệnh có `--hard`, `--force` hoặc `filter-repo` đều viết lại hay xóa dữ liệu; nên chạy `git status` và sao lưu kho trước khi dùng.
+Các lệnh có `--hard`, `--force` hoặc `filter-repo ` đều viết lại hay xóa dữ liệu; nên chạy `git status` và sao lưu repo trước khi dùng.
 
 ## Dữ liệu lớn: để ngoài Git
 
@@ -383,7 +385,7 @@ Git lưu vĩnh viễn mọi phiên bản của mọi tệp trong lịch sử và
 
 &#91;embedded content: Mã, dữ liệu và môi trường nằm ở đâu trong một lần chạy pipeline\]
 
-Kho Git chỉ cần chứa đủ thông tin để tìm lại dữ liệu và môi trường: đường dẫn, mã truy cập trên kho dữ liệu công khai, tag của image và checksum. Commit hash ghi kèm kết quả là sợi dây nối ba nơi này với nhau.
+repo Git chỉ cần chứa đủ thông tin để tìm lại dữ liệu và môi trường: đường dẫn, mã truy cập trên repo dữ liệu công khai, tag của image và checksum. Commit hash ghi kèm kết quả là sợi dây nối ba nơi này với nhau.
 
 **Chọn cách quản lý dữ liệu**
 
@@ -411,15 +413,15 @@ git commit -m "Track TE annotation with Git LFS"
 
 ## Dữ liệu nhạy cảm và dữ liệu lâm sàng
 
-Với dữ liệu từ người (đoàn hệ bệnh nhân, dữ liệu kiểm soát truy cập như dbGaP hay EGA), nguyên tắc an toàn nhất là không để bất kỳ dữ liệu cấp cá nhân nào đi vào Git, kể cả trong kho Private.
+Với dữ liệu từ người (đoàn hệ bệnh nhân, dữ liệu kiểm soát truy cập như dbGaP hay EGA), nguyên tắc an toàn nhất là không để bất kỳ dữ liệu cấp cá nhân nào đi vào Git, kể cả trong repo Private.
 
-- Samplesheet trong kho chỉ nên chứa mã mẫu đã được mã hóa và đường dẫn tệp; bảng liên kết mã mẫu với mã bệnh nhân và metadata lâm sàng nằm trên hệ thống được phê duyệt của dự án.
+- Samplesheet trong repo chỉ nên chứa mã mẫu đã được mã hóa và đường dẫn tệp; bảng liên kết mã mẫu với mã bệnh nhân và metadata lâm sàng nằm trên hệ thống được phê duyệt của dự án.
 - Kiểm tra cả những nơi dễ bỏ sót: output của notebook, bảng kết quả có cột tuổi, giới tính, ngày lấy mẫu, hình có nhãn mẫu, tệp log.
 - Không đặt thông tin đăng nhập (token, mật khẩu cơ sở dữ liệu) trong mã; dùng biến môi trường hoặc tệp `.env` đã nằm trong `.gitignore`.
 - Bật secret scanning và push protection của GitHub để chặn việc push nhầm token.
 - Đọc kỹ thỏa thuận sử dụng dữ liệu (data use agreement) và quy định đạo đức của dự án; một số thỏa thuận hạn chế cả việc công bố số liệu tổng hợp ở mức nhóm nhỏ.
 
-Khi công bố, một cách phổ biến là để mã ở kho Public và ghi rõ trong README cách xin quyền truy cập dữ liệu gốc qua kho dữ liệu kiểm soát truy cập.
+Khi công bố, một cách phổ biến là để mã ở repo Public và ghi rõ trong README cách xin quyền truy cập dữ liệu gốc qua repo dữ liệu kiểm soát truy cập.
 
 ## Tính tái lập
 
@@ -471,7 +473,7 @@ Notebook Jupyter lưu cả output (bảng, hình, đôi khi dữ liệu mẫu) b
 
 ```bash
 pip install nbstripout
-nbstripout --install          # tự xóa output mỗi khi commit trong kho này
+nbstripout --install          # tự xóa output mỗi khi commit trong repo này
 ```
 
 Một lựa chọn khác là [Jupytext](https://jupytext.readthedocs.io), ghép mỗi notebook với một tệp `.py` dạng văn bản để commit tệp đó thay cho `.ipynb`.
@@ -497,7 +499,7 @@ Dòng đầu nên ngắn (khoảng 50 ký tự), viết ở dạng mệnh lệnh
 
 | Nhóm | Lệnh | Tác dụng |
 | --- | --- | --- |
-| Khởi tạo | `git init` / `git clone <url>` | Tạo kho mới / tải kho về laptop hoặc cụm |
+| Khởi tạo | `git init` / `git clone <url>` | Tạo repo mới / tải repo về laptop hoặc cụm |
 | Theo dõi | `git status` | Trạng thái các tệp |
 | Theo dõi | `git diff` / `git diff --staged` | Thay đổi chưa stage / đã stage |
 | Theo dõi | `git check-ignore -v <tệp>` | Vì sao một tệp bị bỏ qua |
@@ -514,10 +516,10 @@ Dòng đầu nên ngắn (khoảng 50 ký tự), viết ở dạng mệnh lệnh
 | Hoàn tác | `git revert <commit>` | Đảo ngược commit đã push |
 | Hoàn tác | `git stash` / `git stash pop` | Cất tạm / lấy lại thay đổi |
 | Cứu hộ | `git reflog` | Tìm lại commit tưởng đã mất |
-| Dọn lịch sử | `git filter-repo --path <tệp> --invert-paths` | Gỡ tệp khỏi toàn bộ lịch sử |
+| Dọn lịch sử | `git filter-repo  --path <tệp> --invert-paths` | Gỡ tệp khỏi toàn bộ lịch sử |
 | Tệp lớn | `git lfs track "*.rds"` | Theo dõi tệp lớn bằng Git LFS |
 | Notebook | `nbstripout --install` | Tự xóa output notebook khi commit |
-| Pipeline | `nextflow run <user/repo> -r <tag>` | Chạy pipeline ở phiên bản cố định |
+| Pipeline | `nextflow run <user/repo > -r <tag>` | Chạy pipeline ở phiên bản cố định |
 
 **Tài liệu tham khảo**
 
